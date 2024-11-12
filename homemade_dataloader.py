@@ -37,6 +37,7 @@ class HomemadeDataloader(Sequence):
         self.indexes_for_class = [[] for _ in range(self.num_classes)]
 
         self.all_image_indices = self._create_indices_distr()
+        self.samples = len(self.all_image_indices)
         self._shuffle_indices()
 
 
