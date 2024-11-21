@@ -44,6 +44,9 @@ class CustomModel(tf.keras.Model):
     def evaluate(self, data):
         # Evaluate the model on the validation set
         return self.model.evaluate(data)
+    
+    def predict(self, data):
+        return self.model.predict(data)
 
     def fit_epochs(self, train_generator, validation_generator, epochs, checkpoint_path, lr=None):
 
