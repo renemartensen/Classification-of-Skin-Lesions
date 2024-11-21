@@ -13,7 +13,7 @@ class Dataloader(Sequence):
         self.batch_size = batch_size
         self.image_size = image_size
         self.isValidation = is_validation
-        self.class_distribution = class_distribuition
+        self.class_distribution = class_distribuition if not is_validation else []
         self.preprocess_function = preprocess_function
 
         self.datagen = ImageDataGenerator(
@@ -37,7 +37,7 @@ class Dataloader(Sequence):
 
         self.indexes_for_class = [[] for _ in range(self.num_classes)]
 
-        self.all_image_indices = self._create_indices_distr()
+        self.all_image_indices = self._create_indices_distr() if not self.isValidation else list(range(len(self.image_paths)))
         self.samples = len(self.all_image_indices)
         #self._shuffle_indices()
         print(f"Found {len(self.image_paths)} images belonging to {self.num_classes} classes (dist says {sum(self.class_distribution)})")
@@ -62,7 +62,10 @@ class Dataloader(Sequence):
                 else:
                     self.indexes_for_class[i] = random.sample(class_indices, required_count)
 
-
+        if self.isValidation:
+            print("Validation set")
+            return list(chain.from_iterable(self.indexes_for_class))
+        print("Training set")
         per_class_batch_size = self.batch_size // self.num_classes
         per_class_batches = []
         remainder = self.batch_size % self.num_classes
@@ -101,14 +104,12 @@ class Dataloader(Sequence):
         res = list(chain.from_iterable(combined_batches))  # Flatten the list
         return res
     # Everything does as i think it should do. The problem is thatwe produce a list [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] from the abovee function 
-    # and then if we have a batch size of 3 we get [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]] which is not what we want
+    # and then if we have a batch size of 3 we get [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9] [0, 1, 2]] which is not what we want
 
 
 
 
-    def __len__(self):
-        num_samples = len(self.all_image_indices) # no_images=100 batchsize=20, then 100/20=5 number of iterations to get through the whole dataset
-        return num_samples // self.batch_size
+    
 
     def _load_data(self):
         image_paths = []
@@ -139,6 +140,10 @@ class Dataloader(Sequence):
     def _shuffle_indices(self):
         self.all_image_indices = self._create_indices_distr()
 
+    def __len__(self):
+        num_samples = len(self.all_image_indices) # no_images=100 batchsize=20, then 100/20=5 number of iterations to get through the whole dataset
+        return num_samples // self.batch_size
+    
     def __getitem__(self, index):
         start = index * self.batch_size
         end = start + self.batch_size
@@ -156,7 +161,8 @@ class Dataloader(Sequence):
         return np.array(images), np.array(labels)
 
     def on_epoch_end(self):
-        self._shuffle_indices()
+        if not self.isValidation:
+            self._shuffle_indices()
 
 
 
