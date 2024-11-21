@@ -78,8 +78,9 @@ class Dataloader(Sequence):
         x = self.preprocess_function(x)
 
       if not self.isValidation:
-        x = x.reshape((1,) + x.shape)
-        x = next(self.datagen.flow(x, batch_size=1))[0]
+          pass
+        #x = x.reshape((1,) + x.shape)
+        #x = next(self.datagen.flow(x, batch_size=1))[0]
 
       return x
 

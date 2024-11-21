@@ -4,17 +4,27 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix, balanced_accuracy_score, precision_recall_curve, average_precision_score, f1_score
 from sklearn.preprocessing import label_binarize
 
+class CombinedHistory:
+    def __init__(self, combined_history_dict):
+        self.history = combined_history_dict
+
 def combine_histories(histories):
     combined_history = {}
     for key in histories[0].history.keys():
         combined_history[key] = []
         for history in histories:
             combined_history[key].extend(history.history[key])
-    return combined_history
+    return CombinedHistory(combined_history)
 
 # Define the function to plot all metrics including balanced accuracy
 def show_all_plots(history, model, validation_generator):
 
+
+    if isinstance(histories, list):  # Check if it's a list of histories
+        history = combine_histories(histories)
+    else:  # If single history is passed, use it directly
+        history = histories.history
+    
 
 
     # Assuming `validation_generator` has class indices mapped to class names
