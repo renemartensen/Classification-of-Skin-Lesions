@@ -28,7 +28,7 @@ class CustomModel(tf.keras.Model):
         self.model = Model(inputs=base_model.input, outputs=preds)
 
         # Set cyclical learning rate parameters
-        self.lower_bound = 4.4e-4
+        self.lower_bound = 1e-4
         self.upper_bound = 1e-3
         self.half_cycle_multiple = 6
         self.batch_size = 32

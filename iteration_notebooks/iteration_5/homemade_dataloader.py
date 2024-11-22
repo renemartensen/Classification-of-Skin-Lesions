@@ -19,13 +19,12 @@ class Dataloader(Sequence):
         self.datagen = ImageDataGenerator(
             horizontal_flip=True,
             vertical_flip=True,
-            shear_range=50, 
-            height_shift_range=0.2,
-            width_shift_range=0.2,
-            rotation_range=360, 
-            brightness_range=[0.3, 1.8], 
-            channel_shift_range= random.uniform(20, 50),
-            zoom_range=0.3)
+            shear_range=15, 
+            zoom_range=0.4,
+            rotation_range=45, 
+            brightness_range= [0.9, 1.5],
+            fill_mode='nearest'
+            )
 
         self.class_names = class_names
         self.num_classes = len(self.class_names)
@@ -65,6 +64,7 @@ class Dataloader(Sequence):
         if self.isValidation:
             print("Validation set")
             return list(chain.from_iterable(self.indexes_for_class))
+        
         per_class_batch_size = self.batch_size // self.num_classes
         per_class_batches = []
         remainder = self.batch_size % self.num_classes
