@@ -36,6 +36,9 @@ class CustomModel(tf.keras.Model):
         self.half_cycle_length = self.steps_per_epoch * self.half_cycle_multiple
         self.full_cycle_length = 2 * self.half_cycle_length
         self.learning_rates = []
+        self.class_weight = None
+        self.norms = []
+        self.epochs = 5
 
     def compile(self):
         # Compile the internal model
@@ -47,12 +50,38 @@ class CustomModel(tf.keras.Model):
     
     def predict(self, data):
         return self.model.predict(data)
+    
 
-    def fit_epochs(self, train_generator, validation_generator, epochs, checkpoint_path, lr=None):
+
+    def fit_epochs(self, train_generator, validation_generator, epochs, checkpoint_path, lr=None, class_weight=None):
+
+        self.epochs = epochs
 
         if lr is not None:
             self.lower_bound = lr[0]
             self.upper_bound = lr[1]
+        
+        if class_weight is not None:
+            self.class_weight = class_weight
+
+        class GradientLogger(Callback):
+            def __init__(self, model):
+                super().__init__()
+                self.model = model
+                self.gradient_norms_log = []
+                self.norms = []
+
+            def on_epoch_end(self, epoch, logs=None):
+                with tf.GradientTape() as tape:
+                    norm = tf.sqrt(sum([tf.reduce_sum(tf.square(var)) for var in self.model.trainable_variables]))
+                    self.norms.append(norm.numpy())
+
+            def get_norms(self):
+                return self.norms
+
+        gradient_logger = GradientLogger(self.model)
+
+        
 
         checkpoint_callback = ModelCheckpoint(
             filepath=checkpoint_path,
@@ -77,9 +106,23 @@ class CustomModel(tf.keras.Model):
             epochs=epochs,
             batch_size=self.batch_size,
             verbose=1,
-            callbacks=[self.lr_scheduler, checkpoint_callback, early_stopping_callback]
+            class_weight=self.class_weight,
+            callbacks=[self.lr_scheduler, checkpoint_callback, early_stopping_callback, gradient_logger]
         )
+
+        self.norms = gradient_logger.get_norms()
+
         return history
+    
+    def plot_trainable_weights(self, norms, epochs):
+        plt.figure(figsize=(8, 6))
+        plt.plot(range(1, epochs + 1), norms, marker='o', label='Norm of Trainable Variables')
+        plt.xlabel('Epoch')
+        plt.ylabel('Norm')
+        plt.title('Norm of Trainable Variables vs Epoch')
+        plt.grid()
+        plt.legend()
+        plt.show()
     
     def evaluate(self, data):
         # Evaluate the model on the validation set
@@ -129,6 +172,7 @@ class CustomModel(tf.keras.Model):
             validation_data=validation_generator,
             epochs=epochs,
             batch_size=self.batch_size,
+            class_weight=self.class_weight,
             callbacks=[lr_scheduler_callback],
             verbose=1
         )
@@ -161,6 +205,9 @@ class CustomModel(tf.keras.Model):
                 self.batch_count += 1
 
         return BatchLearningRateScheduler(self.lower_bound, self.upper_bound, self.full_cycle_length, self.learning_rates)
+
+    
+
 
 # Example usage:
 # model = CustomModel(number_of_samples=1000)
