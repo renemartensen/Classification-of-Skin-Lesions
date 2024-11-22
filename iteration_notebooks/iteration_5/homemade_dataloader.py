@@ -65,7 +65,6 @@ class Dataloader(Sequence):
         if self.isValidation:
             print("Validation set")
             return list(chain.from_iterable(self.indexes_for_class))
-        print("Training set")
         per_class_batch_size = self.batch_size // self.num_classes
         per_class_batches = []
         remainder = self.batch_size % self.num_classes
@@ -131,10 +130,6 @@ class Dataloader(Sequence):
       if self.preprocess_function:
         x = self.preprocess_function(x)
 
-      if not self.isValidation:
-        x = x.reshape((1,) + x.shape)
-        x = next(self.datagen.flow(x, batch_size=1))[0]
-
       return x
 
     def _shuffle_indices(self):
@@ -147,18 +142,28 @@ class Dataloader(Sequence):
     def __getitem__(self, index):
         start = index * self.batch_size
         end = start + self.batch_size
-        images = []
-        labels = []
-
         batch_image_indices = self.all_image_indices[start:end]
 
-        for image_index in batch_image_indices:
-            image_path = self.image_paths[image_index]
-            image = self._preprocess_image(image_path)
-            images.append(image)
-            labels.append(to_categorical(self.labels[image_index], num_classes=self.num_classes))
+        # Preload images and labels for the batch
+        images = [
+            self._preprocess_image(self.image_paths[image_index])
+            for image_index in batch_image_indices
+        ]
+        labels = [
+            to_categorical(self.labels[image_index], num_classes=self.num_classes)
+            for image_index in batch_image_indices
+        ]
 
-        return np.array(images), np.array(labels)
+        # Convert to numpy arrays
+        images = np.array(images)
+        labels = np.array(labels)
+
+        # Apply augmentation if not validation
+        if not self.isValidation:
+            images = next(self.datagen.flow(images, batch_size=self.batch_size, shuffle=False))
+
+        return images, labels
+
 
     def on_epoch_end(self):
         if not self.isValidation:

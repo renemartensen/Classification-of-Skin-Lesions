@@ -17,7 +17,7 @@ def combine_histories(histories):
     return CombinedHistory(combined_history)
 
 # Define the function to plot all metrics including balanced accuracy
-def show_all_plots(history, model, validation_generator):
+def show_all_plots(histories, model, validation_generator):
 
 
     if isinstance(histories, list):  # Check if it's a list of histories
