@@ -147,13 +147,18 @@ class CustomModel(tf.keras.Model):
         # Evaluate the model on the validation set
         return self.model.evaluate(data)
 
+    def get_weights(self):
+        return self.model.get_weights()
+
     def unfreeze(self):
         # Unfreeze all layers in the base model
         for layer in self.model.layers:
             layer.trainable = True
         print("All layers have been unfrozen.")
 
-    def lr_find(self, train_generator, validation_generator, min_lr=1e-10, max_lr=0.01, epochs=10):
+    def lr_find(self, train_generator, validation_generator, min_lr=1e-10, max_lr=0.01, epochs=10, changes_weights=True):
+
+        weights = self.model.get_weights()
         steps_per_epoch = train_generator.samples / self.batch_size
         total_batches = steps_per_epoch * epochs
         
@@ -195,6 +200,9 @@ class CustomModel(tf.keras.Model):
             callbacks=[lr_scheduler_callback],
             verbose=1
         )
+
+        if not changes_weights:
+            self.model.set_weights(weights)
 
         # Plot learning rate vs. loss
         plt.plot(lr_scheduler_callback.lr_history, lr_scheduler_callback.loss_history)
