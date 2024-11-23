@@ -146,6 +146,9 @@ class CustomModel(tf.keras.Model):
     def evaluate(self, data):
         # Evaluate the model on the validation set
         return self.model.evaluate(data)
+    
+    def set_lr(self, lr):
+        self.model.optimizer.learning_rate.assign(lr)
 
     def get_weights(self):
         return self.model.get_weights()
