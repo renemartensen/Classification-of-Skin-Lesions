@@ -114,9 +114,9 @@ class CustomModel(tf.keras.Model):
 
         return history
     
-    def plot_trainable_weights(self, norms, epochs):
+    def plot_trainable_weights(self):
         plt.figure(figsize=(8, 6))
-        plt.plot(range(1, epochs + 1), norms, marker='o', label='Norm of Trainable Variables')
+        plt.plot(range(1, self.epochs + 1), self.norms, marker='o', label='Norm of Trainable Variables')
         plt.xlabel('Epoch')
         plt.ylabel('Norm')
         plt.title('Norm of Trainable Variables vs Epoch')
