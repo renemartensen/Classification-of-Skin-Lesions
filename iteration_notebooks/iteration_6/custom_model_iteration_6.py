@@ -68,6 +68,8 @@ class CustomModel(tf.keras.Model):
         if lr is not None:
             self.lower_bound = lr[0]
             self.upper_bound = lr[1]
+            mid = (self.lower_bound + self.upper_bound) / 2
+            self.set_lr(mid)
         
         if class_weight is not None:
             self.class_weight = class_weight
@@ -126,7 +128,7 @@ class CustomModel(tf.keras.Model):
             batch_size=self.batch_size,
             verbose=1,
             class_weight=self.class_weight,
-            callbacks=[reduce_lr, checkpoint_callback, early_stopping_callback, gradient_logger]
+            callbacks=[checkpoint_callback, early_stopping_callback, gradient_logger]
         )
 
         self.norms = gradient_logger.get_norms()
