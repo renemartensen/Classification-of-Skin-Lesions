@@ -46,7 +46,7 @@ class CustomModel(tf.keras.Model):
         
         if optimizer == "SGD":
             # Compile the internal model
-            self.model.compile(optimizer=SGD(learning_rate=self.lr_mid), loss='categorical_crossentropy', metrics=['accuracy'])
+            self.model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
         elif optimizer == "ADAM":
             self.model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
         else:
@@ -115,7 +115,7 @@ class CustomModel(tf.keras.Model):
 
         early_stopping_callback = EarlyStopping(
             monitor='val_loss',  
-            patience=40,          
+            patience=10,          
             min_delta=0.001,
             start_from_epoch=5
         )
