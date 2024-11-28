@@ -38,7 +38,7 @@ class Dataloader(Sequence):
 
         self.all_image_indices = self._create_indices_distr() if not self.isValidation else list(range(len(self.image_paths)))
         self.samples = len(self.all_image_indices)
-        self._shuffle_indices()
+        #self._shuffle_indices()
         print(f"Found {len(self.image_paths)} images belonging to {self.num_classes} classes (dist says {sum(self.class_distribution)})")
 
 
@@ -61,8 +61,51 @@ class Dataloader(Sequence):
                 else:
                     self.indexes_for_class[i] = random.sample(class_indices, required_count)
 
-        return list(chain.from_iterable(self.indexes_for_class))
+        if self.isValidation:
+            print("Validation set")
+            return list(chain.from_iterable(self.indexes_for_class))
         
+        per_class_batch_size = self.batch_size // self.num_classes
+        per_class_batches = []
+        remainder = self.batch_size % self.num_classes
+        remainder_window = list(range(remainder))  # Initial window of classes for extra samples
+        total_number_of_batches = sum(self.class_distribution) // self.batch_size
+        
+        for i, class_indices in enumerate(self.indexes_for_class):
+            random.shuffle(class_indices)  # Shuffle within the class
+            class_batches = []
+            j = 0
+
+            # Distribute batches for the current class
+            p = 0
+            batch_index = 0  # Tracks which batch we are creating for this class
+            while j + per_class_batch_size <= len(class_indices):
+                if batch_index >= total_number_of_batches:
+                    break
+                if batch_index % self.num_classes in remainder_window:
+                    # This batch for the current class gets an extra sample
+                    batch = class_indices[j:j + per_class_batch_size + 1]
+                    p += 1
+                else:
+                    # Standard batch size
+                    batch = class_indices[j:j + per_class_batch_size]
+                
+                class_batches.append(batch)
+                j += per_class_batch_size
+                batch_index += 1  # Move to the next batch
+                # Update the remainder window to "slide" for the next class
+            remainder_window = [(x + 1) % self.num_classes for x in remainder_window]
+            per_class_batches.append(class_batches)
+
+
+        # Combine batches
+        combined_batches = list(chain.from_iterable(zip(*per_class_batches)))
+        res = list(chain.from_iterable(combined_batches))  # Flatten the list
+        return res
+    # Everything does as i think it should do. The problem is thatwe produce a list [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] from the abovee function 
+    # and then if we have a batch size of 3 we get [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9] [0, 1, 2]] which is not what we want
+
+
 
 
     
@@ -90,7 +133,7 @@ class Dataloader(Sequence):
       return x
 
     def _shuffle_indices(self):
-        random.shuffle(self.all_image_indices)
+        self.all_image_indices = self._create_indices_distr()
 
     def __len__(self):
         num_samples = len(self.all_image_indices) # no_images=100 batchsize=20, then 100/20=5 number of iterations to get through the whole dataset
