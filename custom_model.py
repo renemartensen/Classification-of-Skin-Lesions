@@ -1,9 +1,10 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Flatten, Dense
+from tensorflow.keras.layers import Flatten, Dense, GlobalAveragePooling2D, Dropout
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.applications import MobileNetV3Small
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import Callback, EarlyStopping, ModelCheckpoint
+from tensorflow.keras.regularizers import l2
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -21,7 +22,10 @@ class CustomModel(tf.keras.Model):
         
         # Add custom layers for classification
         x = base_model.output
-        x = Flatten()(x)
+        x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.42)(x)
+        x = Dense(128, activation='relu')(x)
+        x = Dropout(0.42)(x)
         preds = Dense(7, activation='softmax')(x)
 
         # Define the complete model
@@ -128,13 +132,27 @@ class CustomModel(tf.keras.Model):
         # Evaluate the model on the validation set
         return self.model.evaluate(data)
 
-    def unfreeze(self):
+    def unfreeze(self, number_of_layers_to_unfreeze=None):
         # Unfreeze all layers in the base model
-        for layer in self.model.layers:
-            layer.trainable = True
-        print("All layers have been unfrozen.")
+        if number_of_layers_to_unfreeze is None:
+            for layer in self.model.layers:
+                layer.trainable = True
+            print("All layers have been unfrozen.")
+        else:
+            # Ensure number_of_layers_to_unfreeze is valid
+            if number_of_layers_to_unfreeze > len(self.model.layers):
+                print(f"Warning: Only {len(self.model.layers)} layers exist. Unfreezing all layers.")
+                number_of_layers_to_unfreeze = len(self.model.layers)
 
-    def lr_find(self, train_generator, validation_generator, min_lr=1e-10, max_lr=0.01, epochs=10):
+            for layer in self.model.layers[-number_of_layers_to_unfreeze:]:
+                layer.trainable = True
+
+            print(f"Last {number_of_layers_to_unfreeze} layers have been unfrozen.")
+
+
+    def lr_find(self, train_generator, validation_generator, min_lr=1e-10, max_lr=0.01, epochs=10, changes_weights=True):
+
+        weights = self.model.get_weights()
         steps_per_epoch = train_generator.samples / self.batch_size
         total_batches = steps_per_epoch * epochs
         
@@ -176,6 +194,9 @@ class CustomModel(tf.keras.Model):
             callbacks=[lr_scheduler_callback],
             verbose=1
         )
+
+        if not changes_weights:
+            self.model.set_weights(weights)
 
         # Plot learning rate vs. loss
         plt.plot(lr_scheduler_callback.lr_history, lr_scheduler_callback.loss_history)

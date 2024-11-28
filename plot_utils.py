@@ -51,6 +51,8 @@ def show_all_plots(histories, model, validation_generator):
     y_pred_labels = np.argmax(y_pred, axis=1)
     balanced_acc = balanced_accuracy_score(y_true_labels, y_pred_labels)
     conf_matrix = confusion_matrix(y_true_labels, y_pred_labels)
+    conf_matrix = conf_matrix.astype('float') / conf_matrix.sum(axis=1, keepdims=True) * 100
+
 
     # Print metrics
     print(f"Balanced Accuracy: {balanced_acc}")
@@ -80,7 +82,7 @@ def show_all_plots(histories, model, validation_generator):
 
     # 3. Confusion matrix plot
     plt.subplot(2, 2, 3)
-    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues',
+    sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues',
                 xticklabels=class_names, yticklabels=class_names)
     plt.title('Confusion Matrix')
     plt.ylabel('True Label')

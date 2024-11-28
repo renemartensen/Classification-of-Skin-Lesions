@@ -65,7 +65,6 @@ class Dataloader(Sequence):
         if self.isValidation:
             print("Validation set")
             return list(chain.from_iterable(self.indexes_for_class))
-        print("Training set")
         per_class_batch_size = self.batch_size // self.num_classes
         per_class_batches = []
         remainder = self.batch_size % self.num_classes
@@ -125,17 +124,18 @@ class Dataloader(Sequence):
         return image_paths, labels
 
     def _preprocess_image(self, image_path):
-      img = load_img(image_path, target_size=self.image_size)
-      x = img_to_array(img)
+        img = load_img(image_path, target_size=self.image_size)
+        x = img_to_array(img)
 
-      if self.preprocess_function:
-        x = self.preprocess_function(x)
+        if not self.isValidation:
+            x = x.reshape((1,) + x.shape)
+            x = next(self.datagen.flow(x, batch_size=1))[0]
 
-      if not self.isValidation:
-        x = x.reshape((1,) + x.shape)
-        x = next(self.datagen.flow(x, batch_size=1))[0]
+        if self.preprocess_function:
+            x = self.preprocess_function(x)
 
-      return x
+
+        return x
 
     def _shuffle_indices(self):
         self.all_image_indices = self._create_indices_distr()
