@@ -24,7 +24,7 @@ class Dataloader(Sequence):
             rotation_range=45, 
             brightness_range= [0.9, 1.5],
             fill_mode='nearest'
-            )
+        )
 
         self.class_names = class_names
         self.num_classes = len(self.class_names)
@@ -166,14 +166,19 @@ class Dataloader(Sequence):
 
 
 
+import os
+import json
+from sklearn.model_selection import train_test_split
+
 class DataloaderFactory():
-    def __init__(self, dir, image_size, batch_size, set_distribution, class_distribution=[], preprocess_function=None):
+    def __init__(self, dir, image_size, batch_size, set_distribution, class_distribution=[], preprocess_function=None, split_file="data_split.json"):
         self.dir = dir
         self.batch_size = batch_size
         self.image_size = image_size
         self.set_distribution = set_distribution
         self.class_distribution = class_distribution
         self.preprocess_function = preprocess_function
+        self.split_file = split_file
         self.class_names = []
 
     def _load_data(self):
@@ -189,6 +194,13 @@ class DataloaderFactory():
 
     def _split_data(self, data):
         """Split data into train, validation, and test sets based on the specified distribution."""
+        # Check if the split file exists
+        if os.path.exists(self.split_file):
+            print(f"Loading data split from {self.split_file}")
+            with open(self.split_file, "r") as f:
+                return json.load(f)
+
+        print("Splitting data...")
         indices = list(range(len(data)))
         _, val_ratio, test_ratio = [p / 100 for p in self.set_distribution]
 
@@ -201,7 +213,14 @@ class DataloaderFactory():
             test_idxs, test_size=(1 - val_split), stratify=[labels[i] for i in test_idxs]
         )
 
-        return {"train": train_idxs, "val": val_idxs, "test": test_idxs}
+        split = {"train": train_idxs, "val": val_idxs, "test": test_idxs}
+
+        # Save the split to a file
+        with open(self.split_file, "w") as f:
+            json.dump(split, f)
+        print(f"Data split saved to {self.split_file}")
+
+        return split
 
     def get_dataloaders(self):
         """Generate dataloaders for training, validation, and testing."""

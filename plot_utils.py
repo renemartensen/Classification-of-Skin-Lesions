@@ -23,7 +23,7 @@ def show_all_plots(histories, model, validation_generator):
     if isinstance(histories, list):  # Check if it's a list of histories
         history = combine_histories(histories)
     else:  # If single history is passed, use it directly
-        history = histories.history
+        history = histories
     
 
 

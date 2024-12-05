@@ -1,5 +1,5 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Flatten, Dense, GlobalAveragePooling2D, Dropout, BatchNormalization
+from tensorflow.keras.layers import Flatten, Dense, Activation,  GlobalAveragePooling2D, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.applications import MobileNetV3Small
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -20,13 +20,14 @@ class CustomModel(tf.keras.Model):
         for layer in base_model.layers:
             layer.trainable = False
         
-        # Add custom layers for classification
         x = base_model.output
-        x = BatchNormalization()(x)
         x = GlobalAveragePooling2D()(x)
-        x = Dropout(0.42)(x)
-        x = Dense(128, activation='relu')(x)
-        x = Dropout(0.42)(x)
+        x = Dense(256)(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+        x = Dense(128)(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
         preds = Dense(7, activation='softmax')(x)
 
         # Define the complete model
