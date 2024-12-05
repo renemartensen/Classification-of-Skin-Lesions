@@ -6,7 +6,6 @@ Info
 - [`homemade_dataloader.py`](https://gitlab.au.dk/sebiwnl/deep_learning_group2/-/blob/main/homemade_dataloader.py?ref_type=heads) is the implementation for the last iteration's dataloader.
 - [`plot_utils.py`](https://gitlab.au.dk/sebiwnl/deep_learning_group2/-/blob/main/plot_utils.py?ref_type=heads) contains plot functions used for model evaluations.
 
-Data set
-Initial split: [Data Set Ordered](https://drive.google.com/file/d/1oLZRpgW4u_0XikxAdtvLqOVMc3Srqk50/view?usp=share_link)
-
-Merged split [Merged Set Ordered](https://drive.google.com/file/d/1H24NWbCEHQthBZCP4hjmtxx6LYlR3bML/view?usp=share_link)
+Data set (zip):
+- Initial split: [Data Set Ordered](https://drive.google.com/file/d/1oLZRpgW4u_0XikxAdtvLqOVMc3Srqk50/view?usp=share_link)
+- Merged split [Merged Set Ordered](https://drive.google.com/file/d/1H24NWbCEHQthBZCP4hjmtxx6LYlR3bML/view?usp=share_link)
