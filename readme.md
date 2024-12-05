@@ -9,3 +9,4 @@ Info
 Data set (zip):
 - Initial split: [Data Set Ordered](https://drive.google.com/file/d/1oLZRpgW4u_0XikxAdtvLqOVMc3Srqk50/view?usp=share_link)
 - Merged split [Merged Set Ordered](https://drive.google.com/file/d/1H24NWbCEHQthBZCP4hjmtxx6LYlR3bML/view?usp=share_link)
+- The original data set provided by the challenge [isic-archive](https://challenge.isic-archive.com/data/#2018)
