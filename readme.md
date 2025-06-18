@@ -1,4 +1,4 @@
-# Deep Learning (group 2)
+# Deep Learning
 
 Info
 - To view all the iterations we went through, inspect [`all_iterations.ipynb`](https://gitlab.au.dk/sebiwnl/deep_learning_group2/-/blob/main/all_iterations.ipynb?ref_type=heads).
